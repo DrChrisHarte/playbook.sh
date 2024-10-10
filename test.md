@@ -4,17 +4,27 @@
 
 this is some text
 
-## heading 2 again
+## test some python
 
+```
+python3 hello.py
+```
+
+
+## heading 2 again
+ 
 some more text and some code to execute
 
 ```
-#!/bin/bash
-
-echo "*** It worked yay ***"
-
+brew search playbook
 ```
 
 ### heading 3
 
-finish
+Go to google
+
+```
+open https://google.com
+```
+
+# finish

@@ -28,40 +28,76 @@
 # with --format
 # read the markdown file and add section numbers to each heading automatically. Remove existing numbering if necessary
 
-
 # terminal colours
 RED="\033[31m"
 BOLDBLUE="\033[1;34m"
 ENDCOLOR="\033[0;0m"
 
+
+function print_heading () {
+    echo -ne "${BOLDBLUE}"
+    printf '%s\n' "$1"
+    echo -ne "${ENDCOLOR}"
+}
+
 myfile=$1
 
 {
+
+fence='```'
+code=false
+codesnippet=""
+newline=$'\n'
+
+# print the title out
 read -r -u 3 t
-    echo -e "${BOLDBLUE}"
-    printf '%s\n' "$t"
-    echo -e "${ENDCOLOR}"
+print_heading "$t"
+
 while IFS="" read -r -u 3 p || [ -n "$p" ]
 do
-  if [[ $p = \#* ]]
-  then
-    echo -e "${RED}"
-    read -p "Press enter to continue, s to skip, a to abort, or enter a heading number " next
-    echo -e "${ENDCOLOR}"
-    if [[ $next = s ]] 
-    then
-       continue
-    elif [[ $next = a ]]
-        then 
-        echo "exiting"
-        break
-    fi
-    echo -e "${BOLDBLUE}"
-    printf '%s\n' "$p"
-    echo -e "${ENDCOLOR}"  
-  else	  
-    printf '%s\n' "$p"
-  fi
-  
+# read the file line by line  
+
+if [[ $p = ${fence}* ]]
+then
+	if [[ ${code} = true ]]
+		then 
+			
+			code=false
+		else
+			codesnippet=""
+			code=true
+			printf '%s\n' "$p"
+			continue
+	fi
+fi
+
+if [[ $code = true ]]
+then
+        codesnippet="${codesnippet}${newline}${p}"	
+	printf '%s\n' "$p"
+else
+   if [[ $p = \#* ]]
+	  then
+	    # if line starts with # then it's the start of the next heading and we should prompt the user
+	    echo -ne "${RED}"
+	    read -p "Press enter to continue, s to skip, a to abort, or enter a heading number " next
+	    echo -e "${ENDCOLOR}"
+	    
+	    if [[ $next = s ]] 
+	    then
+		continue
+	    elif [[ $next = a ]]
+		then 
+		echo "exiting"
+		break
+	    else
+		    eval "${codesnippet}"
+	    fi
+	    print_heading "$p" 
+	  else	  
+	    printf '%s\n' "$p"
+	  fi
+fi
+
 done 
 } 3< $myfile
