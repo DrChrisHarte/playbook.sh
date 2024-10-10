@@ -85,6 +85,7 @@ else
 	    
 	    if [[ $next = s ]] 
 	    then
+		print_heading "$p"
 		continue
 	    elif [[ $next = a ]]
 		then 
@@ -92,6 +93,7 @@ else
 		break
 	    else
 		    eval "${codesnippet}"
+		    echo ""
 	    fi
 	    print_heading "$p" 
 	  else	  
