@@ -30,8 +30,15 @@
 
 # terminal colours
 RED="\033[31m"
+YELLOW="\033[33m"
 BOLDBLUE="\033[1;34m"
 ENDCOLOR="\033[0;0m"
+
+function print_codeblock () {
+    echo -ne "${YELLOW}"
+    printf '%s\n' "$1"
+    echo -ne "${ENDCOLOR}"
+}
 
 
 function print_heading () {
@@ -55,51 +62,62 @@ print_heading "$t"
 
 while IFS="" read -r -u 3 p || [ -n "$p" ]
 do
-# read the file line by line  
-
-if [[ $p = ${fence}* ]]
-then
-	if [[ ${code} = true ]]
-		then 
-			
-			code=false
-		else
-			codesnippet=""
-			code=true
-			printf '%s\n' "$p"
-			continue
-	fi
-fi
-
-if [[ $code = true ]]
-then
-        codesnippet="${codesnippet}${newline}${p}"	
-	printf '%s\n' "$p"
-else
-   if [[ $p = \#* ]]
-	  then
-	    # if line starts with # then it's the start of the next heading and we should prompt the user
-	    echo -ne "${RED}"
-	    read -p "Press enter to continue, s to skip, a to abort, or enter a heading number " next
-	    echo -e "${ENDCOLOR}"
-	    
-	    if [[ $next = s ]] 
-	    then
-		print_heading "$p"
-		continue
-	    elif [[ $next = a ]]
-		then 
-		echo "exiting"
-		break
-	    else
-		    eval "${codesnippet}"
-		    echo ""
-	    fi
-	    print_heading "$p" 
-	  else	  
-	    printf '%s\n' "$p"
-	  fi
-fi
-
+    # read the file line by line  
+    
+    if [[ $p = ${fence}* ]]
+    then
+    	if [[ ${code} = true ]]
+    		then 
+    			
+    			code=false
+    		else
+    			codesnippet=""
+    			code=true
+    			printf '%s\n' "$p"
+    			continue
+    	fi
+    fi
+    
+    if [[ $code = true ]]
+    then
+            codesnippet="${codesnippet}${newline}${p}"	
+    	printf '%s\n' "$p"
+    else
+       if [[ $p = \#* ]]
+    	  then
+    	    # if line starts with # then it's the start of the next heading 
+    	    # and we should prompt the user
+    	    echo -ne "${RED}"
+    	    read -p "Press enter to continue, s to skip, a to abort " next
+    	    echo -e "${ENDCOLOR}"
+    	    
+    	    # s = skip 
+    	    if [[ $next = s ]] 
+    	    then
+    		print_heading "$p"
+    		continue
+    	    
+    	    # a = abort 
+    	    elif [[ $next = a ]]
+    		then 
+    		echo "exiting"
+    		break
+    	    
+    	    else
+    		# if there's something in the codesnippet then run it
+    		if [[ -n "${codesnippet}" ]]
+    	            then
+    		        print_codeblock "**** EXECUTING CODE BLOCK *****"
+    	    		eval "${codesnippet}"
+    	    		print_codeblock "**** EXECUTION COMPLETE ****"
+    			echo ""
+         	        fi
+    	    fi
+    	    print_heading "$p" 
+    	  else	  
+    	    printf '%s\n' "$p"
+    	  fi
+    fi
+    
 done 
 } 3< $myfile

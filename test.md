@@ -1,12 +1,14 @@
 # Title
 
+This is a test md file.
+
 ## heading 2
 
 this is some text
 
-## test some python
+## call a python script
 
-```
+```bash
 python3 hello.py
 ```
 
@@ -15,16 +17,22 @@ python3 hello.py
  
 some more text and some code to execute
 
-```
-brew search playbook
+```bash
+brew update
 ```
 
 ### heading 3
-
+ 
 Go to google
 
-```
+```bash
 open https://google.com
+```
+
+#python
+
+```python
+print("hello")
 ```
 
 # finish
