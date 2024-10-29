@@ -39,12 +39,36 @@ function print_codeblock () {
     printf '%s\n' "$1"
     echo -ne "${ENDCOLOR}"
 }
-
-
+            
+    
 function print_heading () {
     echo -ne "${BOLDBLUE}"
     printf '%s\n' "$1"
     echo -ne "${ENDCOLOR}"
+}
+
+function prompt_user () {
+    echo -ne "${RED}"
+    read -p "$1" next
+    echo -e "${ENDCOLOR}"
+}
+
+function exec_codesnippet() {
+
+    if [[ -n "${codesnippet}" ]]
+        then
+        if [[ $lang = "bash" ]]
+        then
+            print_codeblock "**** EXECUTING CODE BLOCK *****"
+            eval "${codesnippet}"
+            print_codeblock "**** EXECUTION COMPLETE ****"
+            echo ""
+            codesnippet=""
+            lang=""
+        else
+            echo "Language in codeblock not supported by playbook.sh"
+        fi
+    fi
 }
 
 myfile=$1
@@ -54,6 +78,7 @@ myfile=$1
 fence='```'
 code=false
 codesnippet=""
+lang=""
 newline=$'\n'
 
 # print the title out
@@ -63,34 +88,38 @@ print_heading "$t"
 while IFS="" read -r -u 3 p || [ -n "$p" ]
 do
     # read the file line by line  
-    
+   
+    # check for triple backticks ``` start or end of code block
     if [[ $p = ${fence}* ]]
     then
     	if [[ ${code} = true ]]
     		then 
-    			
-    			code=false
+    			# found end of code block
+			code=false
     		else
-    			codesnippet=""
-    			code=true
-    			printf '%s\n' "$p"
+    			# found a new code block
+			    codesnippet=""
+                code=true
+                if [[ $p = "${fence}bash" ]]
+                    then
+                    lang="bash"
+                fi
+                printf '%s\n' "$p"
     			continue
     	fi
     fi
     
     if [[ $code = true ]]
     then
-            codesnippet="${codesnippet}${newline}${p}"	
+        codesnippet="${codesnippet}${newline}${p}"	
     	printf '%s\n' "$p"
     else
        if [[ $p = \#* ]]
     	  then
     	    # if line starts with # then it's the start of the next heading 
     	    # and we should prompt the user
-    	    echo -ne "${RED}"
-    	    read -p "Press enter to continue, s to skip, a to abort " next
-    	    echo -e "${ENDCOLOR}"
-    	    
+    	    prompt_user "Press enter to continue, s to skip, a to abort "
+   	    
     	    # s = skip 
     	    if [[ $next = s ]] 
     	    then
@@ -101,17 +130,11 @@ do
     	    elif [[ $next = a ]]
     		then 
     		echo "exiting"
-    		break
+    		exit
     	    
     	    else
-    		# if there's something in the codesnippet then run it
-    		if [[ -n "${codesnippet}" ]]
-    	            then
-    		        print_codeblock "**** EXECUTING CODE BLOCK *****"
-    	    		eval "${codesnippet}"
-    	    		print_codeblock "**** EXECUTION COMPLETE ****"
-    			echo ""
-         	        fi
+                # if there's something in the codesnippet then run it
+                exec_codesnippet
     	    fi
     	    print_heading "$p" 
     	  else	  
@@ -121,3 +144,16 @@ do
     
 done 
 } 3< $myfile
+
+# final prompt
+prompt_user "Press enter to continue, s to skip, a to abort "
+
+# a = abort 
+if [[ $next = a ]]
+    then 
+    echo "exiting"
+else
+    # if there's something in the codesnippet then run it
+    exec_codesnippet
+fi
+ 
