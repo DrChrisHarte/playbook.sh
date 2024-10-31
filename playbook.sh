@@ -118,19 +118,27 @@ do
     	  then
     	    # if line starts with # then it's the start of the next heading 
     	    # and we should prompt the user
-    	    prompt_user "Press enter to continue, s to skip, a to abort "
-   	    
-    	    # s = skip 
-    	    if [[ $next = s ]] 
-    	    then
-    		print_heading "$p"
-    		continue
+    	    if [[ $codesnippet != "" ]]
+            then
+                prompt_user "Press enter to continue, s to skip, a to abort "
+   	        
+    	        # s = skip 
+    	        if [[ $next = s ]] 
+    	            then
+    		        print_codeblock "Skipped code block"; echo
+                    print_heading "$p"
+    		        codesnippet=""
+                    continue
+                fi
+            else
+                prompt_user "Press enter to continue, a to abort "
+            fi
     	    
     	    # a = abort 
-    	    elif [[ $next = a ]]
-    		then 
-    		echo "exiting"
-    		exit
+    	    if [[ $next = a ]]
+    		    then 
+    		    echo "exiting"
+    		    exit
     	    
     	    else
                 # if there's something in the codesnippet then run it
@@ -146,12 +154,12 @@ done
 } 3< $myfile
 
 # final prompt
-prompt_user "Press enter to continue, s to skip, a to abort "
+prompt_user "Press enter to continue, s to skip "
 
-# a = abort 
-if [[ $next = a ]]
-    then 
-    echo "exiting"
+# s = skip 
+if [[ $next = s ]] 
+    then
+    print_heading "$p"
 else
     # if there's something in the codesnippet then run it
     exec_codesnippet
